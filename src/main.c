@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <math.h>
+#include <unistd.h>
+#include <pigpio.h>
+
 
 #define WARNING_TEMP1 68
 #define WARNING_TEMP2 76
+#define PIN 17
 
 void tempCheck(int n[],int size){
 	for(int i = 0; i < size; i++){
@@ -45,7 +49,20 @@ void saveTemps(int n[], int size, int avg){
 	fclose(file);
 }
 
+void singleTemp(int n){
+	if( n < WARNING_TEMP1 || n > WARNING_TEMP2){
+		gpioWrite(PIN,1);
+		printf("\nWARNING");
+	}else{
+		gpioWrite(PIN,0);
+		printf("\nNORMAL");
+	}
+}
+	
+
 int main(){
+	gpioInitialise();
+	gpioSetMode(PIN,PI_OUTPUT);
 	int tp[5];
 	printf("Enter the temperatures of the room: ");
 	for(int i = 0; i < 5; i++){
@@ -55,6 +72,11 @@ int main(){
 	int avg = avgTemp(tp, 5);
 	printf("\nAverage Temperature is: %d", avg);
 	saveTemps(tp, 5, avg);
+	int single;
+	printf("\nEnter a single temperature: ");
+	scanf("%d", &single);
+	singleTemp(single);
+	gpioTerminate();
 	return 0;
 }
 	
